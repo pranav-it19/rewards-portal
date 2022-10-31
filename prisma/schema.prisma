@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+datasource db {
+  provider = "mysql"
+  url = env("DATABASE_URL")
+  referentialIntegrity = "prisma"
+}
+
+model Users {
+  email          String     @id @unique
+  name           String
+  points         Int        @default(0)
+  dob            DateTime
+  doj            DateTime
+  post           Posts[]    @relation("author")
+  mentionedPosts Posts[]    @relation("mentioned")
+  comments       Comments[]
+  likedPosts     Likes[]
+}
+
+model Tags {
+  id   String  @id @default(uuid())
+  name String  
+  Post Posts[]
+}
+
+model Posts {
+  id                 String     @id @default(uuid())
+  createdAt          DateTime   @default(now())
+  tagId              String
+  tag                Tags       @relation(fields: [tagId], references: [id])
+  message            String
+  imageURL           String?
+  authorEmail        String
+  author             Users      @relation("author", fields: [authorEmail], references: [email])
+  mentionedUserEmail String
+  mentionedUser      Users      @relation("mentioned", fields: [mentionedUserEmail], references: [email])
+  comments           Comments[]
+  likes              Likes[]
+}
+
+model Likes {
+  id        String @id @default(uuid())
+  userEmail String
+  user      Users  @relation(fields: [userEmail], references: [email])
+  postId    String
+  post      Posts  @relation(fields: [postId], references: [id])
+}
+
+model Comments {
+  id          String @id @default(uuid())
+  authorEmail String
+  author      Users  @relation(fields: [authorEmail], references: [email])
+  message     String
+  postId      String
+  post        Posts  @relation(fields: [postId], references: [id])
+}
